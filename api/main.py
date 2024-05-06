@@ -89,3 +89,6 @@ def get_images():
             return jsonify({'error': 'No images found'}), 404
     return jsonify({'images': [images, names]}), 200
 
+if __name__ == "__main__":
+    from waitress import serve
+    serve(app)
