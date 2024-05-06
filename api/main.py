@@ -54,8 +54,10 @@ class EmailSender:
 def upload_images():
     try:
         image_ids = []
+        sender_name = request.form.get("senderName")  # Accédez au senderName envoyé dans le formulaire
+        
         for key, value in request.files.items():
-            image_id = collection.insert_one({"image": value.read()}).inserted_id
+            image_id = collection.insert_one({"image": value.read(), "senderName": sender_name}).inserted_id
             image_ids.append(str(image_id))
             print(key, value)            
         EmailSender(user_mail, user_password, [user_mail], "Images uploaded successfully", f"Image IDs: {', '.join(image_ids)}").sendEmail()
@@ -76,3 +78,5 @@ def get_image(image_id):
     image_stream.seek(0)
     return send_file(image_stream, mimetype='image/png')
 
+if __name__ == '__main__':
+    app.run(debug=True)
