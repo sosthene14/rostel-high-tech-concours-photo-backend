@@ -9,6 +9,7 @@ from email.mime.text import MIMEText
 from datetime import datetime, timedelta
 from bson.objectid import ObjectId
 from io import BytesIO
+import base64
 
 
 load_dotenv()
@@ -68,15 +69,23 @@ def upload_images():
         return jsonify({"error": str(e)}), 500
     
 
-@app.route('/images/<image_id>')
-def get_image(image_id):
-    image_doc = collection.find_one({'_id': ObjectId(image_id)})
-    if not image_doc:
-        return jsonify({'error': 'Image not found'}), 404
-    image_data = image_doc['image']
-    image_stream = BytesIO(image_data)
-    image_stream.seek(0)
-    return send_file(image_stream, mimetype='image/png')
+@app.route('/images')
+def get_images():
+    image_docs = collection.find({})
+    if not image_docs:
+        return jsonify({'error': 'No images found'}), 404
+    
+    images = [] 
+    names = []
+    
+    for doc in image_docs:
+        image_fdb = doc['image']
+        names.append(doc['senderName'])
+        image_stream = BytesIO(image_fdb)
+        image_stream.seek(0)
+        image_base64 = base64.b64encode(image_stream.read()).decode('utf-8')
+        images.append(image_base64)
+        if not images:
+            return jsonify({'error': 'No images found'}), 404
+    return jsonify({'images': [images, names]}), 200
 
-if __name__ == '__main__':
-    app.run(debug=True)
